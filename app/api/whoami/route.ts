@@ -8,6 +8,8 @@ export async function GET(req: Request) {
     pid: process.pid,
     uptimeS: process.uptime(),
     node: process.version,
+    glibc: (process.report?.getReport() as { header?: { glibcVersionRuntime?: string } })?.header
+      ?.glibcVersionRuntime ?? null,
     tzEnv: process.env.TZ ?? null,
     tzResolved: Intl.DateTimeFormat().resolvedOptions().timeZone,
     nowUtc: new Date().toISOString(),
