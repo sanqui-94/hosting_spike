@@ -15,6 +15,8 @@ function poolConfig() {
     database: u.pathname.slice(1),
     connectionLimit: PRISMA_POOL,
     acquireTimeout: 10_000,
+    // Hostinger closes idle connections after 20 s (wait_timeout); drop them from the pool first.
+    idleTimeout: 10,
   };
 }
 

@@ -12,12 +12,16 @@ export async function GET(req: Request) {
   if (!authorized(req)) return new Response("unauthorized", { status: 401 });
   const url = new URL(req.url);
   if (url.searchParams.get("events")) {
-    const events = await prisma().spikeEvent.findMany({
-      where: { kind: { startsWith: "sleep" } },
-      orderBy: { id: "desc" },
-      take: 20,
-    });
-    return json({ now: new Date().toISOString(), pid: process.pid, uptimeS: process.uptime(), events });
+    try {
+      const events = await prisma().spikeEvent.findMany({
+        where: { kind: { startsWith: "sleep" } },
+        orderBy: { id: "desc" },
+        take: 40,
+      });
+      return json({ now: new Date().toISOString(), pid: process.pid, uptimeS: process.uptime(), events });
+    } catch (e) {
+      return json({ error: e instanceof Error ? e.message : String(e) }, { status: 500 });
+    }
   }
 
   const s = Math.min(Number(url.searchParams.get("s") ?? 110), 290);
