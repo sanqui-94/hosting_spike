@@ -26,7 +26,11 @@ function poolConfig() {
 const g = globalThis as unknown as { spikePrisma?: PrismaClient };
 
 export function prisma(): PrismaClient {
-  g.spikePrisma ??= new PrismaClient({ adapter: new PrismaMariaDb(poolConfig()) });
+  // The binary protocol sent string parameters as utf8mb4_bin, so `LIKE CONCAT(?, '%')` (startsWith)
+  // failed with "Illegal mix of collations". The text protocol sends them in the connection collation.
+  // DB_TEXT_PROTOCOL=0 switches back to compare.
+  const useTextProtocol = process.env.DB_TEXT_PROTOCOL !== "0";
+  g.spikePrisma ??= new PrismaClient({ adapter: new PrismaMariaDb(poolConfig(), { useTextProtocol }) });
   return g.spikePrisma;
 }
 

@@ -30,6 +30,6 @@ export async function GET(req: Request) {
     "SHOW STATUS LIKE 'Threads_connected'",
   );
   return json(
-    { ...info, tables, threadsConnected: threads?.Value, prismaPool: PRISMA_POOL, pid: process.pid }
+    { ...info, tables, threadsConnected: threads?.Value, prismaPool: PRISMA_POOL, textProtocol: process.env.DB_TEXT_PROTOCOL !== "0", pid: process.pid }
   );
 }
