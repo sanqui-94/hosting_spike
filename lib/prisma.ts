@@ -17,6 +17,9 @@ function poolConfig() {
     acquireTimeout: 10_000,
     // Hostinger closes idle connections after 20 s (wait_timeout); drop them from the pool first.
     idleTimeout: 10,
+    // Without this the connection collation is left to the server and Prisma text filters (LIKE)
+    // failed with "Illegal mix of collations" against utf8mb4_unicode_ci tables.
+    collation: process.env.DB_COLLATION ?? "UTF8MB4_UNICODE_CI",
   };
 }
 

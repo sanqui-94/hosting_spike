@@ -17,11 +17,19 @@ export async function GET(req: Request) {
            @@session.time_zone AS sessionTimeZone,
            @@system_time_zone AS systemTimeZone,
            NOW(3) AS now,
-           UTC_TIMESTAMP(3) AS utcNow`);
+           UTC_TIMESTAMP(3) AS utcNow,
+           @@character_set_server AS charsetServer,
+           @@collation_server AS collationServer,
+           @@collation_database AS collationDatabase,
+           @@collation_connection AS collationConnection,
+           @@character_set_client AS charsetClient`);
+  const tables = await db.$queryRawUnsafe<Record<string, unknown>[]>(
+    "SELECT TABLE_NAME AS name, TABLE_COLLATION AS collation FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE()",
+  );
   const [threads] = await db.$queryRawUnsafe<Record<string, unknown>[]>(
     "SHOW STATUS LIKE 'Threads_connected'",
   );
   return json(
-    { ...info, threadsConnected: threads?.Value, prismaPool: PRISMA_POOL, pid: process.pid }
+    { ...info, tables, threadsConnected: threads?.Value, prismaPool: PRISMA_POOL, pid: process.pid }
   );
 }
