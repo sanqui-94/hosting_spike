@@ -3,7 +3,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build --webpack",
+    "build": "prisma generate && next build --webpack",
+    "postinstall": "prisma generate",
     "start": "next start",
     "test": "node --experimental-strip-types --test lib/*.test.ts"
   },
@@ -11,6 +12,8 @@
     "node": ">=20.9"
   },
   "dependencies": {
+    "@prisma/adapter-mariadb": "^7.10.1",
+    "@prisma/client": "^7.10.1",
     "mysql2": "^3.24.6",
     "next": "^16.4.5",
     "react": "^19.3.1",
@@ -19,6 +22,7 @@
   "devDependencies": {
     "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
+    "prisma": "^7.10.1",
     "typescript": "^7.0.2"
   }
 }

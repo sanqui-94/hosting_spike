@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// Row 7: a stand-in for the outbox. Created by /api/db/setup with raw SQL, so no migrations run on Hostinger.
+model SpikeJob {
+  id        Int       @id @default(autoincrement())
+  status    String    @default("pending") @db.VarChar(16)
+  claimedBy String?   @map("claimed_by") @db.VarChar(64)
+  claimedAt DateTime? @map("claimed_at") @db.DateTime(3)
+
+  @@index([status])
+  @@map("spike_jobs")
+}
+
+// Rows 4 and 6: events that must be recorded server-side even if the client connection is cut.
+model SpikeEvent {
+  id      Int      @id @default(autoincrement())
+  kind    String   @db.VarChar(32)
+  detail  String   @db.VarChar(255)
+  pid     Int
+  uptimeS Float    @map("uptime_s")
+  at      DateTime @default(now()) @db.DateTime(3)
+
+  @@map("spike_events")
+}
