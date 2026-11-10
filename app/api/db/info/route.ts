@@ -1,4 +1,5 @@
 import { authorized } from "@/lib/auth";
+import { json } from "@/lib/json";
 import { prisma, PRISMA_POOL } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -20,8 +21,7 @@ export async function GET(req: Request) {
   const [threads] = await db.$queryRawUnsafe<Record<string, unknown>[]>(
     "SHOW STATUS LIKE 'Threads_connected'",
   );
-  return Response.json(
-    { ...info, threadsConnected: threads?.Value, prismaPool: PRISMA_POOL, pid: process.pid },
-    { headers: { "content-type": "application/json" } },
+  return json(
+    { ...info, threadsConnected: threads?.Value, prismaPool: PRISMA_POOL, pid: process.pid }
   );
 }

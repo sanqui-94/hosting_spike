@@ -1,4 +1,5 @@
 import { authorized } from "@/lib/auth";
+import { json } from "@/lib/json";
 import { logEvent, prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +17,7 @@ export async function GET(req: Request) {
       orderBy: { id: "desc" },
       take: 20,
     });
-    return Response.json({ now: new Date().toISOString(), pid: process.pid, uptimeS: process.uptime(), events });
+    return json({ now: new Date().toISOString(), pid: process.pid, uptimeS: process.uptime(), events });
   }
 
   const s = Math.min(Number(url.searchParams.get("s") ?? 110), 290);
@@ -28,5 +29,5 @@ export async function GET(req: Request) {
   }
   await new Promise((r) => setTimeout(r, (s % 10) * 1000));
   await logEvent("sleep-end", run);
-  return Response.json({ ok: true, run, pid: process.pid, uptimeS: process.uptime() });
+  return json({ ok: true, run, pid: process.pid, uptimeS: process.uptime() });
 }
