@@ -1,7 +1,7 @@
 import type { RowDataPacket } from "mysql2";
 import { authorized } from "@/lib/auth";
 import { db, ensureTicksTable } from "@/lib/db";
-import { cronReport } from "@/lib/cron-report";
+import { cronReport, pidSegments } from "@/lib/cron-report";
 
 export const dynamic = "force-dynamic";
 
@@ -15,15 +15,17 @@ export async function GET(req: Request) {
 
   await ensureTicksTable();
   const [rows] = await db().query<RowDataPacket[]>(
-    "SELECT received_ms, fired_s, pid FROM spike_cron_ticks WHERE job = ? AND received_ms >= ? ORDER BY received_ms",
+    "SELECT received_ms, fired_s, pid, uptime_s FROM spike_cron_ticks WHERE job = ? AND received_ms >= ? ORDER BY received_ms",
     [job, sinceMs],
   );
-  const report = cronReport(
-    rows.map((r) => ({
-      receivedMs: Number(r.received_ms),
-      firedS: r.fired_s === null ? null : Number(r.fired_s),
-      pid: Number(r.pid),
-    })),
-  );
-  return Response.json({ job, ...report });
+  const ticks = rows.map((r) => ({
+    receivedMs: Number(r.received_ms),
+    firedS: r.fired_s === null ? null : Number(r.fired_s),
+    pid: Number(r.pid),
+    uptimeS: Number(r.uptime_s),
+  }));
+  const report = cronReport(ticks);
+  // ?pids=1 adds a per-process timeline (row 11).
+  const segments = url.searchParams.get("pids") ? { pidSegments: pidSegments(ticks) } : {};
+  return Response.json({ job, ...report, ...segments });
 }

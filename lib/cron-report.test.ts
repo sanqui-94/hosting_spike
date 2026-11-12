@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { cronReport } from "./cron-report.ts";
+import { cronReport, pidSegments } from "./cron-report.ts";
 
 const t0 = Date.UTC(2026, 10, 9, 12, 0, 5);
 const at = (min: number, sec = 5, pid = 1) => ({
@@ -30,4 +30,16 @@ test("finds gaps, duplicates and distinct pids regardless of input order", () =>
   assert.equal(r.intervalSeconds?.min, 35);
   assert.deepEqual(r.pids, [1, 2]);
   assert.equal(r.firedToReceivedMs?.min, 1000);
+});
+
+test("pid segments list each process's first and last tick in start order", () => {
+  const segs = pidSegments([
+    { ...at(2, 5, 7), uptimeS: 30 },
+    { ...at(0, 5, 3), uptimeS: 900 },
+    { ...at(1, 5, 3), uptimeS: 960 },
+  ]);
+  assert.deepEqual(
+    segs.map((s) => [s.pid, s.ticks, s.uptimeAtFirstS]),
+    [[3, 2, 900], [7, 1, 30]],
+  );
 });

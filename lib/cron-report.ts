@@ -79,3 +79,22 @@ export function cronReport(input: Tick[]): CronReport {
     pids: [...new Set(ticks.map((t) => t.pid))].sort((a, b) => a - b),
   };
 }
+
+export type PidSegment = { pid: number; firstUtc: string; lastUtc: string; ticks: number; uptimeAtFirstS: number | null };
+
+// Row 11: when each process served ticks. A low uptime at its first tick means it had just started.
+export function pidSegments(input: (Tick & { uptimeS?: number })[]): PidSegment[] {
+  const byPid = new Map<number, { first: number; last: number; ticks: number; uptimeAtFirstS: number | null }>();
+  for (const t of [...input].sort((a, b) => a.receivedMs - b.receivedMs)) {
+    const seg = byPid.get(t.pid);
+    if (seg) {
+      seg.last = t.receivedMs;
+      seg.ticks++;
+    } else {
+      byPid.set(t.pid, { first: t.receivedMs, last: t.receivedMs, ticks: 1, uptimeAtFirstS: t.uptimeS ?? null });
+    }
+  }
+  return [...byPid]
+    .map(([pid, s]) => ({ pid, firstUtc: iso(s.first), lastUtc: iso(s.last), ticks: s.ticks, uptimeAtFirstS: s.uptimeAtFirstS }))
+    .sort((a, b) => a.firstUtc.localeCompare(b.firstUtc));
+}
